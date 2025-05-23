@@ -3,13 +3,13 @@ module github.com/eampleev23/gophkeeper2.git
 go 1.24.1
 
 require (
+	github.com/go-chi/chi/v5 v5.2.1
 	github.com/golang-migrate/migrate/v4 v4.18.3
 	github.com/jackc/pgx/v5 v5.7.5
 	go.uber.org/zap v1.27.0
 )
 
 require (
-	github.com/go-chi/chi/v5 v5.2.1 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
