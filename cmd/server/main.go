@@ -5,6 +5,7 @@ import (
 	"github.com/eampleev23/gophkeeper2.git/internal/auth"
 	"github.com/eampleev23/gophkeeper2.git/internal/handlers"
 	"github.com/eampleev23/gophkeeper2.git/internal/logger"
+	"github.com/eampleev23/gophkeeper2.git/internal/middlewares"
 	"github.com/eampleev23/gophkeeper2.git/internal/server_config"
 	"github.com/eampleev23/gophkeeper2.git/internal/store"
 	"github.com/go-chi/chi/v5"
@@ -51,6 +52,7 @@ func run() error {
 	logger.ZL.Info("Running server", zap.String("address", servConfig.RunAddr))
 	routers := chi.NewRouter()
 	routers.Use(logger.RequestLogger)
+	routers.Use(middlewares.CheckContentType)
 	routers.Post("/api/user/registration", handlers.Registration)
 
 	err = http.ListenAndServe(servConfig.RunAddr, routers)
