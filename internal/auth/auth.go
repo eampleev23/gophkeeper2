@@ -62,13 +62,13 @@ func (au *Authorizer) SetNewCookie(w http.ResponseWriter, userID int, userLogin 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			// Когда создан токен.
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(au.c.TokenExp)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(au.servConf.TokenExp)),
 		},
 		// Собственное утверждение.
 		UserID:    userID,
 		UserLogin: userLogin,
 	})
-	tokenString, err := token.SignedString([]byte(au.c.SecretKey))
+	tokenString, err := token.SignedString([]byte(au.servConf.SecretKey))
 	if err != nil {
 		return fmt.Errorf("token.SignedString fail.. %w", err)
 	}

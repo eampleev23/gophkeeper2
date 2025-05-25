@@ -1,0 +1,7 @@
+BEGIN
+TRANSACTION;
+
+DROP TABLE IF EXISTS users;
+DROP INDEX user_login_unique;
+
+COMMIT;

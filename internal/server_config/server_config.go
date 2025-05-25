@@ -29,7 +29,7 @@ func (c *ServerConfig) SetValues() {
 	// регистрируем уровень логирования
 	flag.StringVar(&c.LogLevel, "l", "debug", "logger level")
 	// принимаем строку подключения к базе данных
-	flag.StringVar(&c.DBDSN, "d", "", "postgres database")
+	flag.StringVar(&c.DBDSN, "d", "postgresql://gopher:gopher@localhost:5432/gophkeeper2?sslmode=disable", "postgres database")
 	// принимаем секретный ключ сервера для авторизации
 	flag.StringVar(&c.SecretKey, "s", "e4853f5c4810101e88f1898db21c15d3", "server's secret key for authorization")
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/eampleev23/gophkeeper2.git/internal/logger"
 	"github.com/eampleev23/gophkeeper2.git/internal/server_config"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 )
 
 type Store interface {

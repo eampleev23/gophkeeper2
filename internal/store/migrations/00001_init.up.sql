@@ -1,0 +1,13 @@
+BEGIN TRANSACTION;
+CREATE TABLE IF NOT EXISTS users
+(
+    id       INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    login    VARCHAR(200) UNIQUE NOT NULL,
+    password VARCHAR(200)
+
+    );
+
+CREATE UNIQUE INDEX IF NOT EXISTS user_login_unique
+    ON users
+    USING btree (login);
+COMMIT;

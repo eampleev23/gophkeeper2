@@ -51,7 +51,7 @@ func run() error {
 	logger.ZL.Info("Running server", zap.String("address", servConfig.RunAddr))
 	routers := chi.NewRouter()
 	routers.Use(logger.RequestLogger)
-	routers.Post("api/user/registration", handlers.Registration)
+	routers.Post("/api/user/registration", handlers.Registration)
 
 	err = http.ListenAndServe(servConfig.RunAddr, routers)
 	if err != nil {
