@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/eampleev23/gophkeeper2.git/internal/auth"
 	"github.com/eampleev23/gophkeeper2.git/internal/handlers"
 	"github.com/eampleev23/gophkeeper2.git/internal/logger"
 	"github.com/eampleev23/gophkeeper2.git/internal/server_config"
@@ -26,6 +27,10 @@ func run() error {
 		return fmt.Errorf("failed to create zap logger: %w", err)
 	}
 	logger.ZL.Debug("logger created")
+	auth, err := auth.Initialize(servConfig, logger)
+	if err != nil {
+		return fmt.Errorf("failed to initialize a new authorizer: %w", err)
+	}
 	store, err := store.NewStorage(servConfig, logger)
 	if err != nil {
 		return fmt.Errorf("failed to create store: %w", err)
@@ -38,7 +43,7 @@ func run() error {
 			}
 		}()
 	}
-	handlers, err := handlers.NewHandlers(store, servConfig, logger)
+	handlers, err := handlers.NewHandlers(store, servConfig, logger, auth)
 	if err != nil {
 		return fmt.Errorf("failed to create handlers: %w", err)
 	}

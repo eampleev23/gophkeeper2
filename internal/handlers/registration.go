@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"go.uber.org/zap"
 	"net/http"
 	"strings"
 )
@@ -16,18 +15,18 @@ func (handlers *Handlers) Registration(responseWriter http.ResponseWriter, reque
 		return
 	}
 
-	_, isAuth, err := handlers.GetUserID(request)
-	if err != nil {
-		handlers.l.ZL.Error("GetUserID failed", zap.Error(err))
-		responseWriter.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	if isAuth {
-		handlers.l.ZL.Error("already authorized user is going to register")
-		responseWriter.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	//_, isAuth, err := handlers.GetUserID(request)
+	//if err != nil {
+	//	handlers.l.ZL.Error("GetUserID failed", zap.Error(err))
+	//	responseWriter.WriteHeader(http.StatusInternalServerError)
+	//	return
+	//}
+	//
+	//if isAuth {
+	//	handlers.l.ZL.Error("already authorized user is going to register")
+	//	responseWriter.WriteHeader(http.StatusInternalServerError)
+	//	return
+	//}
 
 	// Получаем данные в случае корректного запроса
 }
