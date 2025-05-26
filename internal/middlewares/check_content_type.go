@@ -20,5 +20,7 @@ func CheckContentType(next http.Handler) http.Handler {
 			responseWriter.Write(msg)
 			return
 		}
+		responseWriter.Header().Set("Content-Type", "application/json")
+		next.ServeHTTP(responseWriter, gotRequest.WithContext(gotRequest.Context()))
 	})
 }

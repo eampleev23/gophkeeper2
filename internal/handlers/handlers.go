@@ -9,30 +9,29 @@ import (
 )
 
 type Handlers struct {
-	s    store.Store
-	c    *server_config.ServerConfig
-	l    *logger.ZapLog
-	auth *auth.Authorizer
+	store    store.Store
+	servConf *server_config.ServerConfig
+	logger   *logger.ZapLog
+	auth     *auth.Authorizer
 }
 
 func NewHandlers(
-	s store.Store,
-	c *server_config.ServerConfig,
-	l *logger.ZapLog,
+	store store.Store,
+	servConf *server_config.ServerConfig,
+	logger *logger.ZapLog,
 	auth *auth.Authorizer,
 ) (
 	*Handlers,
 	error) {
 	return &Handlers{
-		s:    s,
-		c:    c,
-		l:    l,
-		auth: auth,
+		store:    store,
+		servConf: servConf,
+		logger:   logger,
+		auth:     auth,
 	}, nil
 }
 
 func (handlers *Handlers) GetUserID(r *http.Request) (userID int, isAuth bool, err error) {
-	handlers.l.ZL.Debug("GetUserID started.. ")
 	cookie, err := r.Cookie("token")
 	if err != nil {
 		return 0, false, nil //nolint:nilerr // нужно будет исправить логику
