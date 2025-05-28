@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"github.com/eampleev23/gophkeeper2.git/internal/auth"
 	"github.com/eampleev23/gophkeeper2.git/internal/logger"
 	"github.com/eampleev23/gophkeeper2.git/internal/server_config"
@@ -31,14 +32,16 @@ func NewHandlers(
 	}, nil
 }
 
-func (handlers *Handlers) GetUserID(r *http.Request) (userID int, isAuth bool, err error) {
-	cookie, err := r.Cookie("token")
-	if err != nil {
-		return 0, false, nil //nolint:nilerr // нужно будет исправить логику
-	}
-	userID, err = handlers.auth.GetUserID(cookie.Value)
-	if err != nil {
-		return 0, false, nil //nolint:nilerr // нужно будет исправить логику
-	}
-	return userID, true, nil
+// resultMessage - структура для возврата json ответа более детализированного, чем просто статус.
+type resultMsg struct {
+	IsError       bool
+	ResultMessage string `json:"result_message"`
+}
+
+func sendResponse(isError bool, mg string, status int, responseWriter http.ResponseWriter) (err error) {
+	resultMsg := resultMsg{IsError: isError, ResultMessage: mg}
+	msg, _ := json.Marshal(resultMsg)
+	responseWriter.WriteHeader(status)
+	responseWriter.Write(msg)
+	return nil
 }

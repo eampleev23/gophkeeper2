@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/eampleev23/gophkeeper2.git/internal/logger"
 	"github.com/eampleev23/gophkeeper2.git/internal/server_config"
@@ -11,6 +12,12 @@ import (
 	"net/http"
 	"time"
 )
+
+// resultMessage - структура для возврата json ответа более детализированного, чем просто статус.
+type resultMsg struct {
+	IsError       bool
+	ResultMessage string `json:"result_message"`
+}
 
 type Authorizer struct {
 	logger   *logger.ZapLog
@@ -53,6 +60,27 @@ func (au *Authorizer) Auth(next http.Handler) http.Handler {
 		// если кука уже установлена, то через контекст передаем 0
 		ctx := context.WithValue(r.Context(), KeyUserIDCtx, 0)
 		next.ServeHTTP(w, r.WithContext(ctx))
+	}
+	return http.HandlerFunc(fn)
+}
+
+// MiddleCheckNoAuth мидлвар, который проверяет роуты, к которым должны обращаться не авторизованные пользователи.
+func (au *Authorizer) MiddleCheckNoAuth(next http.Handler) http.Handler {
+	fn := func(responseWriter http.ResponseWriter, gotRequest *http.Request) {
+
+		au.logger.ZL.Debug("MiddleCheckNoAuth started.. ")
+
+		_, err := gotRequest.Cookie("token")
+		if err != nil {
+			next.ServeHTTP(responseWriter, gotRequest.WithContext(gotRequest.Context()))
+			return
+		}
+
+		resultMsg := resultMsg{IsError: true, ResultMessage: "Already authenticated"}
+		msg, _ := json.Marshal(resultMsg)
+		responseWriter.WriteHeader(http.StatusForbidden)
+		responseWriter.Write(msg)
+		return
 	}
 	return http.HandlerFunc(fn)
 }

@@ -17,32 +17,7 @@ import (
 }
 */
 
-type errorMsg struct {
-	ErrorMessage string `json:"error_message"`
-}
-
 func (handlers *Handlers) Registration(responseWriter http.ResponseWriter, request *http.Request) {
-
-	handlers.logger.ZL.Info("Handling Registration")
-
-	// Получаем куки чтобы проверить не авторизованный ли пользователь хочет зарегистрироваться.
-	_, isAuth, err := handlers.GetUserID(request)
-	if err != nil {
-		errorMsg := errorMsg{ErrorMessage: "Can't read cookies"}
-		msg, _ := json.Marshal(errorMsg)
-		responseWriter.WriteHeader(http.StatusInternalServerError)
-		responseWriter.Write(msg)
-		return
-	}
-
-	// Если авторизованный, то отдаем соответствующую ошибку.
-	if isAuth {
-		errorMsg := errorMsg{ErrorMessage: "Already authenticated"}
-		msg, _ := json.Marshal(errorMsg)
-		responseWriter.WriteHeader(http.StatusForbidden)
-		responseWriter.Write(msg)
-		return
-	}
 
 	// Создаем модель, для парсингда запроса.
 	var userRegRequest models.UserRegReq
@@ -50,10 +25,7 @@ func (handlers *Handlers) Registration(responseWriter http.ResponseWriter, reque
 	// Пробуем спарсить запрос в модель.
 	decoder := json.NewDecoder(request.Body)
 	if err := decoder.Decode(&userRegRequest); err != nil {
-		errorMsg := errorMsg{ErrorMessage: "Not a valid user registration request"}
-		msg, _ := json.Marshal(errorMsg)
-		responseWriter.WriteHeader(http.StatusBadRequest)
-		responseWriter.Write(msg)
+		sendResponse(true, "Not a valid user registration request", http.StatusBadRequest, responseWriter)
 		return
 	}
 
@@ -62,24 +34,17 @@ func (handlers *Handlers) Registration(responseWriter http.ResponseWriter, reque
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgerrcode.IsIntegrityConstraintViolation(pgErr.Code) {
-			errorMsg := errorMsg{ErrorMessage: "User with this login already exists"}
-			msg, _ := json.Marshal(errorMsg)
-			responseWriter.WriteHeader(http.StatusConflict)
-			responseWriter.Write(msg)
+			sendResponse(true, "User with this login already exists", http.StatusConflict, responseWriter)
 			return
 		}
 	}
 
+	// Зарегистрировали, авторизуем сразу на лету.
 	err = handlers.auth.SetNewCookie(responseWriter, newUser.ID, newUser.Login)
 	if err != nil {
-		errorMsg := errorMsg{ErrorMessage: "Fail authenticate user after successful registration"}
-		msg, _ := json.Marshal(errorMsg)
-		responseWriter.WriteHeader(http.StatusOK)
-		responseWriter.Write(msg)
+		sendResponse(false, "Fail authenticate user after successful registration", http.StatusOK, responseWriter)
 		return
 	}
-	errorMsg := errorMsg{ErrorMessage: "Success authenticate user after successful registration"}
-	msg, _ := json.Marshal(errorMsg)
-	responseWriter.WriteHeader(http.StatusOK)
-	responseWriter.Write(msg)
+
+	sendResponse(false, "Success authenticate user after successful registration", http.StatusOK, responseWriter)
 }
