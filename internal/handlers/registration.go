@@ -25,7 +25,11 @@ func (handlers *Handlers) Registration(responseWriter http.ResponseWriter, reque
 	// Пробуем спарсить запрос в модель.
 	decoder := json.NewDecoder(request.Body)
 	if err := decoder.Decode(&userRegRequest); err != nil {
-		sendResponse(true, "Not a valid user registration request", http.StatusBadRequest, responseWriter)
+		sendResponse(
+			true,
+			"Not a valid user registration request",
+			http.StatusBadRequest,
+			responseWriter)
 		return
 	}
 
@@ -34,7 +38,11 @@ func (handlers *Handlers) Registration(responseWriter http.ResponseWriter, reque
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgerrcode.IsIntegrityConstraintViolation(pgErr.Code) {
-			sendResponse(true, "User with this login already exists", http.StatusConflict, responseWriter)
+			sendResponse(
+				true,
+				"User with this login already exists",
+				http.StatusConflict,
+				responseWriter)
 			return
 		}
 	}
@@ -42,9 +50,17 @@ func (handlers *Handlers) Registration(responseWriter http.ResponseWriter, reque
 	// Зарегистрировали, авторизуем сразу на лету.
 	err = handlers.auth.SetNewCookie(responseWriter, newUser.ID, newUser.Login)
 	if err != nil {
-		sendResponse(false, "Fail authenticate user after successful registration", http.StatusOK, responseWriter)
+		sendResponse(
+			false,
+			"Fail authenticate user after successful registration",
+			http.StatusOK,
+			responseWriter)
 		return
 	}
 
-	sendResponse(false, "Success authenticate user after successful registration", http.StatusOK, responseWriter)
+	sendResponse(
+		false,
+		"Success authenticate user after successful registration",
+		http.StatusOK,
+		responseWriter)
 }
