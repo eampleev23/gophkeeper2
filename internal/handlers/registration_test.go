@@ -2,12 +2,14 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"github.com/eampleev23/gophkeeper2.git/internal/auth"
 	"github.com/eampleev23/gophkeeper2.git/internal/logger"
 	"github.com/eampleev23/gophkeeper2.git/internal/models"
 	"github.com/eampleev23/gophkeeper2.git/internal/server_config"
-	"github.com/eampleev23/gophkeeper2.git/internal/store"
+	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"io"
@@ -16,10 +18,49 @@ import (
 	"testing"
 )
 
+// Выносим создание конфига на уровень пакета
+var (
+	testConfig    = server_config.NewServerConfig()
+	testLogger, _ = logger.NewZapLogger("info")
+	testAuth, _   = auth.Initialize(testConfig, testLogger)
+)
+
+// mockStorage реализует store.Store для тестов
+type mockStorage struct {
+	users map[string]models.User
+}
+
+func newMockStorage() *mockStorage {
+	return &mockStorage{
+		users: make(map[string]models.User),
+	}
+}
+
+func (m *mockStorage) CreateUser(ctx context.Context, userReq models.UserRegReq) (*models.User, error) {
+	// Для теста BadRequest возвращаем ошибку при пустом логине
+	if userReq.Login == "" {
+		return nil, &pgconn.PgError{Code: pgerrcode.NotNullViolation}
+	}
+	if _, exists := m.users[userReq.Login]; exists {
+		return &models.User{}, &pgconn.PgError{Code: pgerrcode.UniqueViolation}
+	}
+	newUser := models.User{
+		ID:    len(m.users) + 1,
+		Login: userReq.Login,
+	}
+	m.users[userReq.Login] = newUser
+	return &newUser, nil
+}
+
+func (m *mockStorage) DBConnClose() error {
+	return nil
+}
+
 func TestHandlers_Registration(t *testing.T) {
 
+	t.Parallel() // Разрешаем параллельное выполнение тестов
+
 	type want struct {
-		//contentType  string
 		statusCode   int
 		jsonResponse resultMsg
 	}
@@ -27,33 +68,63 @@ func TestHandlers_Registration(t *testing.T) {
 	tests := []struct {
 		name        string
 		requestUrl  string
-		requestBody models.UserRegReq
-		tableUsers  interface{}
+		requestBody interface{}
+		tableUsers  map[int]models.User
 		want        want
 	}{
 		{
-			name:       "test status 200 OK with auto authorization",
+			name:       "test status http.StatusOK",
 			requestUrl: "/api/user/registration/",
 			requestBody: models.UserRegReq{
-				Login:    "Петя",
-				Password: "петр лучший",
+				Login:    "Petr",
+				Password: "petrPass",
 			},
 			tableUsers: map[int]models.User{
-				1: {Login: "Александр"},
-				2: {Login: "Андрей"},
-				3: {Login: "Валерка"},
+				1: {Login: "Alex"},
+				2: {Login: "Drew"},
+				3: {Login: "Valery"},
 			},
 			want: want{
-				//contentType: "application/json",
-				statusCode: 200,
+				statusCode: http.StatusOK,
 				jsonResponse: resultMsg{
 					IsError:       false,
 					ResultMessage: "Success authenticate user after successful registration",
 				},
 			},
 		},
+		{
+			name:        "test status http.StatusBadRequest",
+			requestUrl:  "/api/user/registration/",
+			requestBody: "invalid request body",
+			tableUsers: map[int]models.User{
+				1: {Login: "Alex"},
+			},
+			want: want{
+				statusCode: http.StatusBadRequest,
+				jsonResponse: resultMsg{
+					IsError:       true,
+					ResultMessage: "Not a valid user registration request",
+				},
+			},
+		},
+		{
+			name:        "test status http.StatusBadRequest with fake struct #2",
+			requestUrl:  "/api/user/registration/",
+			requestBody: map[int]int{1: 1},
+			tableUsers: map[int]models.User{
+				1: {Login: "Alex"},
+			},
+			want: want{
+				statusCode: http.StatusBadRequest,
+				jsonResponse: resultMsg{
+					IsError:       true,
+					ResultMessage: "Login and password are required",
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
+		tt := tt // capture range variable
 		t.Run(tt.name, func(t *testing.T) {
 
 			jsonBody, err := json.Marshal(tt.requestBody)
@@ -65,28 +136,16 @@ func TestHandlers_Registration(t *testing.T) {
 			request.Header.Set("Content-Type", "application/json")
 			w := httptest.NewRecorder()
 
-			// Создаем логгер и прочее для получения в конечном итоге хэндлеров.
-			l, err := logger.NewZapLogger("info")
-			if err != nil {
-				t.Log(err)
-			}
-			c := server_config.NewServerConfig()
-			au, err := auth.Initialize(c, l)
-			if err != nil {
-				t.Log(err)
-			}
-			s, err := store.NewDBStore(c, l)
-			if err != nil {
-				t.Log(err)
-			}
-			handlers, _ := NewHandlers(s, c, l, au)
+			s := newMockStorage()
+
+			handlers, err := NewHandlers(s, testConfig, testLogger, testAuth)
+			require.NoError(t, err)
 			h := http.HandlerFunc(handlers.Registration)
 			h(w, request)
 
 			result := w.Result()
 
 			assert.Equal(t, tt.want.statusCode, result.StatusCode)
-			//assert.Equal(t, tt.want.contentType, result.Header.Get("Content-Type"))
 
 			bytesJsonResponse, err := io.ReadAll(result.Body)
 			require.NoError(t, err)

@@ -33,6 +33,16 @@ func (handlers *Handlers) Registration(responseWriter http.ResponseWriter, reque
 		return
 	}
 
+	// Дополнительная проверка на пустые значения
+	if userRegRequest.Login == "" || userRegRequest.Password == "" {
+		sendResponse(
+			true,
+			"Login and password are required",
+			http.StatusBadRequest,
+			responseWriter)
+		return
+	}
+
 	// Спарсили, пробуем зарегистрировать нового пользователя.
 	newUser, err := handlers.store.CreateUser(request.Context(), userRegRequest)
 	if err != nil {
