@@ -18,7 +18,8 @@ import (
 	"testing"
 )
 
-// Выносим создание конфига на уровень пакета
+// Выносим создание конфига, логгера, авторизатора в глобальные переменные
+
 var (
 	testConfig    = server_config.NewServerConfig()
 	testLogger, _ = logger.NewZapLogger("info")
@@ -69,7 +70,7 @@ func TestHandlers_Registration(t *testing.T) {
 		name        string
 		requestUrl  string
 		requestBody interface{}
-		tableUsers  map[int]models.User
+		tableUsers  map[string]models.User
 		want        want
 	}{
 		{
@@ -79,10 +80,10 @@ func TestHandlers_Registration(t *testing.T) {
 				Login:    "Petr",
 				Password: "petrPass",
 			},
-			tableUsers: map[int]models.User{
-				1: {Login: "Alex"},
-				2: {Login: "Drew"},
-				3: {Login: "Valery"},
+			tableUsers: map[string]models.User{
+				"1": {Login: "Alex"},
+				"2": {Login: "Drew"},
+				"3": {Login: "Valery"},
 			},
 			want: want{
 				statusCode: http.StatusOK,
@@ -96,8 +97,8 @@ func TestHandlers_Registration(t *testing.T) {
 			name:        "test status http.StatusBadRequest",
 			requestUrl:  "/api/user/registration/",
 			requestBody: "invalid request body",
-			tableUsers: map[int]models.User{
-				1: {Login: "Alex"},
+			tableUsers: map[string]models.User{
+				"1": {Login: "Alex"},
 			},
 			want: want{
 				statusCode: http.StatusBadRequest,
@@ -108,17 +109,35 @@ func TestHandlers_Registration(t *testing.T) {
 			},
 		},
 		{
-			name:        "test status http.StatusBadRequest with fake struct #2",
+			name:        "test status http.StatusBadRequest with fake struct",
 			requestUrl:  "/api/user/registration/",
 			requestBody: map[int]int{1: 1},
-			tableUsers: map[int]models.User{
-				1: {Login: "Alex"},
+			tableUsers: map[string]models.User{
+				"1": {Login: "Alex"},
 			},
 			want: want{
 				statusCode: http.StatusBadRequest,
 				jsonResponse: resultMsg{
 					IsError:       true,
 					ResultMessage: "Login and password are required",
+				},
+			},
+		},
+		{
+			name:       "test status http.StatusConflict",
+			requestUrl: "/api/user/registration/",
+			requestBody: models.UserRegReq{
+				Login:    "Petr",
+				Password: "petrPass",
+			},
+			tableUsers: map[string]models.User{
+				"1": {Login: "Petr"},
+			},
+			want: want{
+				statusCode: http.StatusConflict,
+				jsonResponse: resultMsg{
+					IsError:       true,
+					ResultMessage: "User with this login already exists",
 				},
 			},
 		},
@@ -136,7 +155,11 @@ func TestHandlers_Registration(t *testing.T) {
 			request.Header.Set("Content-Type", "application/json")
 			w := httptest.NewRecorder()
 
+			// Создаем мок хранилище и заполняем его тестовыми данными
 			s := newMockStorage()
+			for _, user := range tt.tableUsers {
+				s.users[user.Login] = user // Заполняем мок данными из тест-кейса
+			}
 
 			handlers, err := NewHandlers(s, testConfig, testLogger, testAuth)
 			require.NoError(t, err)
