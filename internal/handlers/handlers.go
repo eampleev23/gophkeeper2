@@ -20,10 +20,8 @@ func NewHandlers(
 	store store.Store,
 	servConf *server_config.ServerConfig,
 	logger *logger.ZapLog,
-	auth *auth.Authorizer,
-) (
-	*Handlers,
-	error) {
+	auth *auth.Authorizer, // Убрать *
+) (*Handlers, error) {
 	return &Handlers{
 		store:    store,
 		servConf: servConf,
@@ -41,12 +39,12 @@ type resultMsg struct {
 func sendResponse(
 	isError bool,
 	mg string,
-	status int,
+	statusCode int,
 	responseWriter http.ResponseWriter,
 ) (err error) {
 	resultMsg := resultMsg{IsError: isError, ResultMessage: mg}
 	msg, _ := json.Marshal(resultMsg)
-	responseWriter.WriteHeader(status)
+	responseWriter.WriteHeader(statusCode)
 	responseWriter.Write(msg)
 	return nil
 }
