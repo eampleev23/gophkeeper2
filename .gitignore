@@ -14,7 +14,7 @@
 
 # Binaries
 cmd/server/server
-cmd/client/client
+cmd/client/gophkeeper2
 
 # Dependency directories (remove the comment below to include it)
 vendor/
