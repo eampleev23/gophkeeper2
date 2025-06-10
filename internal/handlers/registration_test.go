@@ -74,7 +74,7 @@ func TestHandlers_Registration(t *testing.T) {
 		want        want
 	}{
 		{
-			name:       "test status http.StatusOK",
+			name:       "Test status http.StatusOK",
 			requestUrl: "/api/user/registration/",
 			requestBody: models.UserRegReq{
 				Login:    "Petr",
@@ -94,7 +94,7 @@ func TestHandlers_Registration(t *testing.T) {
 			},
 		},
 		{
-			name:        "test status http.StatusBadRequest",
+			name:        "Test status http.StatusBadRequest",
 			requestUrl:  "/api/user/registration/",
 			requestBody: "invalid request body",
 			tableUsers: map[string]models.User{
@@ -109,7 +109,7 @@ func TestHandlers_Registration(t *testing.T) {
 			},
 		},
 		{
-			name:        "test status http.StatusBadRequest with fake struct",
+			name:        "Test status http.StatusBadRequest with fake struct",
 			requestUrl:  "/api/user/registration/",
 			requestBody: map[int]int{1: 1},
 			tableUsers: map[string]models.User{
@@ -124,7 +124,7 @@ func TestHandlers_Registration(t *testing.T) {
 			},
 		},
 		{
-			name:       "test status http.StatusConflict",
+			name:       "Test status http.StatusConflict",
 			requestUrl: "/api/user/registration/",
 			requestBody: models.UserRegReq{
 				Login:    "Petr",
