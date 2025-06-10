@@ -17,13 +17,13 @@ import (
 }
 */
 
-func (handlers *Handlers) Registration(responseWriter http.ResponseWriter, request *http.Request) {
+func (handlers *Handlers) Registration(responseWriter http.ResponseWriter, gotRequest *http.Request) {
 
 	// Создаем модель, для парсингда запроса.
 	var userRegRequest models.UserRegReq
 
 	// Пробуем спарсить запрос в модель.
-	decoder := json.NewDecoder(request.Body)
+	decoder := json.NewDecoder(gotRequest.Body)
 	if err := decoder.Decode(&userRegRequest); err != nil {
 		sendResponse(
 			true,
@@ -44,7 +44,7 @@ func (handlers *Handlers) Registration(responseWriter http.ResponseWriter, reque
 	}
 
 	// Спарсили, пробуем зарегистрировать нового пользователя.
-	newUser, err := handlers.store.CreateUser(request.Context(), userRegRequest)
+	newUser, err := handlers.store.CreateUser(gotRequest.Context(), userRegRequest)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgerrcode.IsIntegrityConstraintViolation(pgErr.Code) {

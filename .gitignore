@@ -25,5 +25,8 @@ vendor/
 .vscode
 db/data/
 
-# Local file store
-#./cmd/shortener/tmp/short-url-db.json
+# SSL/TLS certificates
+server.key
+server.crt
+server.csr
+*.pem

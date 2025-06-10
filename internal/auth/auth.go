@@ -116,7 +116,7 @@ type Claims struct {
 }
 
 // GetUserID возвращает ID пользователя.
-func (au *Authorizer) GetUserID(tokenString string) (int, error) {
+func (au *Authorizer) GetUserIDByCookie(tokenString string) (int, error) {
 	// Создаем экземпляр структуры с утверждениями
 	claims := &Claims{}
 	// Парсим из строки токена tokenString в структуру claims
