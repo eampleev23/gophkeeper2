@@ -59,6 +59,7 @@ func run() error {
 	routers.Group(func(router chi.Router) {
 		router.Use(auth.MiddleCheckNoAuth)
 		router.Post("/api/user/registration/", handlers.Registration)
+		router.Post("/api/user/login/", handlers.Login)
 	})
 
 	err = http.ListenAndServe(servConfig.RunAddr, routers)
