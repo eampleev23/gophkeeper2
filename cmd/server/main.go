@@ -54,7 +54,7 @@ func run() error {
 	routers := chi.NewRouter()
 
 	routers.Use(logger.RequestLogger)
-	routers.Use(middlewares.CheckAndSetContentType)
+	routers.Use(middlewares.BaseChecks)
 
 	routers.Group(func(router chi.Router) {
 		router.Use(auth.MiddleCheckNoAuth)

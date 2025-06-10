@@ -56,7 +56,7 @@ func TestCheckAndSetContentType(t *testing.T) {
 			responseRecorder := httptest.NewRecorder()
 
 			handler := &TestHandler{}
-			middleware := CheckAndSetContentType(handler)
+			middleware := BaseChecks(handler)
 			middleware.ServeHTTP(responseRecorder, req)
 
 			// Проверяем StatusCode.

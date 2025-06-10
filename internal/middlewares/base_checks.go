@@ -6,15 +6,8 @@ import (
 	"strings"
 )
 
-func CheckAndSetContentType(next http.Handler) http.Handler {
+func BaseChecks(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(responseWriter http.ResponseWriter, gotRequest *http.Request) {
-		if gotRequest.URL.Scheme != "https" && gotRequest.TLS == nil {
-			resultMsg := resultMsg{IsError: true, ResultMessage: "HTTPS required"}
-			msg, _ := json.Marshal(resultMsg)
-			responseWriter.WriteHeader(http.StatusForbidden)
-			responseWriter.Write(msg)
-			return
-		}
 		contentType := gotRequest.Header.Get("Content-Type")
 		if !strings.HasPrefix(contentType, "application/json") {
 			resultMsg := resultMsg{IsError: true, ResultMessage: "Content-Type header is not application/json"}
