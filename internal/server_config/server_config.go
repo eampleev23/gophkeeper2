@@ -24,9 +24,7 @@ func NewServerConfig() *ServerConfig {
 
 func (c *ServerConfig) SetValues() {
 	// регистрируем переменную flagRunAddr как аргумент -a со значением по умолчанию localhost:8080
-	//flag.StringVar(&c.RunAddr, "a", "localhost:8080", "Set listening address and port for server")
-	//flag.StringVar(&c.RunAddr, "a", "0.0.0.0:8080", "Set listening address and port for server")
-	flag.StringVar(&c.RunAddr, "a", "0.0.0.0:443", "Set listening address and port for server")
+	flag.StringVar(&c.RunAddr, "a", "127.0.0.1:8443", "Set listening address and port for server (HTTPS)")
 	// регистрируем уровень логирования
 	flag.StringVar(&c.LogLevel, "l", "debug", "logger level")
 	// принимаем строку подключения к базе данных
