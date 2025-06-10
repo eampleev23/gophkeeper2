@@ -26,7 +26,6 @@ vendor/
 db/data/
 
 # SSL/TLS certificates
-server.key
-server.crt
-server.csr
-*.pem
+cmd/server/server.key
+cmd/server/server.crt
+cmd/server/server.csr
