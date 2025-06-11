@@ -12,6 +12,7 @@ import (
 type Store interface {
 	DBConnClose() (err error)
 	CreateUser(ctx context.Context, userRegReq models.UserRegReq) (newUser *models.User, err error)
+	GetUserByLogin(ctx context.Context, userLoginReq models.UserLoginReq) (userModelResponse *models.User, err error)
 }
 
 func NewStorage(serv_conf *server_config.ServerConfig, logger *logger.ZapLog) (Store, error) {

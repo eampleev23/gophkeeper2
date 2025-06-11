@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func BaseChecks(next http.Handler) http.Handler {
+func CheckAndSetContenType(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(responseWriter http.ResponseWriter, gotRequest *http.Request) {
 		contentType := gotRequest.Header.Get("Content-Type")
 		if !strings.HasPrefix(contentType, "application/json") {
