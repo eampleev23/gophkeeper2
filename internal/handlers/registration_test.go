@@ -53,6 +53,10 @@ func (m *mockStorage) CreateUser(ctx context.Context, userReq models.UserRegReq)
 	return &newUser, nil
 }
 
+func (m *mockStorage) GetUserByLogin(ctx context.Context, userLoginReq models.UserLoginReq) (userModelResponse *models.User, err error) {
+	return nil, nil
+}
+
 func (m *mockStorage) DBConnClose() error {
 	return nil
 }

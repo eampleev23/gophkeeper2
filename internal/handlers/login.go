@@ -17,8 +17,6 @@ import (
 
 func (handlers *Handlers) Login(responseWriter http.ResponseWriter, gotRequest *http.Request) {
 
-	handlers.logger.ZL.Info("Handling /login")
-
 	// Создаем модель для парсинга запроса.
 	var userLoginReq models.UserLoginReq
 
@@ -70,6 +68,16 @@ func (handlers *Handlers) Login(responseWriter http.ResponseWriter, gotRequest *
 			true,
 			"The passwords don't match",
 			http.StatusUnauthorized,
+			responseWriter)
+		return
+	}
+
+	err = handlers.auth.SetNewCookie(responseWriter, foundUser.ID, foundUser.Login)
+	if err != nil {
+		sendResponse(
+			true,
+			"Error setting authorization cookie",
+			http.StatusInternalServerError,
 			responseWriter)
 		return
 	}
