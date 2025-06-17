@@ -6,6 +6,7 @@ import (
 	"github.com/eampleev23/gophkeeper2.git/internal/logger"
 	"github.com/eampleev23/gophkeeper2.git/internal/models"
 	"github.com/eampleev23/gophkeeper2.git/internal/server_config"
+	"github.com/eampleev23/gophkeeper2.git/internal/store"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
 )
@@ -45,8 +46,12 @@ func (m *mockStorage) CreateUser(ctx context.Context, userReq models.UserRegReq)
 	return &newUser, nil
 }
 
-func (m *mockStorage) GetUserByLogin(ctx context.Context, userLoginReq models.UserLoginReq) (userModelResponse *models.User, err error) {
-	return nil, nil
+func (m *mockStorage) GetUserByLogin(ctx context.Context, userLoginReq models.UserLoginReq) (*models.User, error) {
+	user, exists := m.users[userLoginReq.Login]
+	if !exists {
+		return nil, store.ErrUserNotFound
+	}
+	return &user, nil
 }
 
 func (m *mockStorage) DBConnClose() error {

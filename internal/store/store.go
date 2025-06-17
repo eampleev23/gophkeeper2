@@ -2,11 +2,18 @@ package store
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/eampleev23/gophkeeper2.git/internal/logger"
 	"github.com/eampleev23/gophkeeper2.git/internal/models"
 	"github.com/eampleev23/gophkeeper2.git/internal/server_config"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+)
+
+// Ошибки хранилища
+
+var (
+	ErrUserNotFound = errors.New("user not found")
 )
 
 type Store interface {
