@@ -13,10 +13,14 @@ import (
 
 // Общие тестовые переменные.
 var (
-	testConfig    = server_config.NewServerConfig()
+	testConfig    = newMockServerConfig()
 	testLogger, _ = logger.NewZapLogger("info")
 	testAuth, _   = auth.Initialize(testConfig, testLogger)
 )
+
+func newMockServerConfig() *server_config.ServerConfig {
+	return &server_config.ServerConfig{}
+}
 
 // Общая реализация мока хранилища.
 type mockStorage struct {

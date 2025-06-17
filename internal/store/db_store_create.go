@@ -38,27 +38,31 @@ func generateRandomBytes(length uint32) ([]byte, error) {
 	return b, nil
 }
 
-func VerifyPassword(password, encodedHash string) (match bool, err error) {
-	// Распаковываем параметры из хэша
-	p, salt, hash, err := decodeHash(encodedHash)
-	if err != nil {
-		return false, fmt.Errorf("failed to decode hash: %w", err)
-	}
+// Заводим функцию как переменную для использования в тестах.
 
-	// Derive the key from the other password using the same parameters
-	otherHash := argon2.IDKey([]byte(password), salt, p.Iterations, p.Memory, p.Parallelism, p.KeyLength)
+var (
+	VerifyPassword = func(password, encodedHash string) (match bool, err error) {
+		// Распаковываем параметры из хэша
+		p, salt, hash, err := decodeHash(encodedHash)
+		if err != nil {
+			return false, fmt.Errorf("failed to decode hash: %w", err)
+		}
 
-	// Check that the contents of the hashed passwords are identical
-	if len(hash) != len(otherHash) {
-		return false, nil
-	}
-	for i := range hash {
-		if hash[i] != otherHash[i] {
+		// Derive the key from the other password using the same parameters
+		otherHash := argon2.IDKey([]byte(password), salt, p.Iterations, p.Memory, p.Parallelism, p.KeyLength)
+
+		// Check that the contents of the hashed passwords are identical
+		if len(hash) != len(otherHash) {
 			return false, nil
 		}
+		for i := range hash {
+			if hash[i] != otherHash[i] {
+				return false, nil
+			}
+		}
+		return true, nil
 	}
-	return true, nil
-}
+)
 
 func decodeHash(encodedHash string) (p *Argon2Params, salt, hash []byte, err error) {
 	vals := strings.Split(encodedHash, "$")
