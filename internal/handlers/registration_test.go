@@ -18,19 +18,19 @@ import (
 	"testing"
 )
 
-// Выносим создание конфига, логгера, авторизатора в глобальные переменные
-
+// Общие тестовые переменные.
 var (
 	testConfig    = server_config.NewServerConfig()
 	testLogger, _ = logger.NewZapLogger("info")
 	testAuth, _   = auth.Initialize(testConfig, testLogger)
 )
 
-// mockStorage реализует store.Store для тестов
+// Общая реализация мока хранилища.
 type mockStorage struct {
 	users map[string]models.User
 }
 
+// Конструктор мока хранилища.
 func newMockStorage() *mockStorage {
 	return &mockStorage{
 		users: make(map[string]models.User),
