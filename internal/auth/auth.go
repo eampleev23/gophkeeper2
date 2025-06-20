@@ -68,14 +68,11 @@ func (au *Authorizer) Auth(next http.Handler) http.Handler {
 func (au *Authorizer) MiddleCheckNoAuth(next http.Handler) http.Handler {
 	fn := func(responseWriter http.ResponseWriter, gotRequest *http.Request) {
 
-		au.logger.ZL.Debug("MiddleCheckNoAuth started.. ")
-
 		_, err := gotRequest.Cookie("token")
 		if err != nil {
 			next.ServeHTTP(responseWriter, gotRequest.WithContext(gotRequest.Context()))
 			return
 		}
-
 		resultMsg := resultMsg{IsError: true, ResultMessage: "Already authenticated"}
 		msg, _ := json.Marshal(resultMsg)
 		responseWriter.WriteHeader(http.StatusForbidden)
@@ -103,6 +100,7 @@ func (au *Authorizer) SetNewCookie(w http.ResponseWriter, userID int, userLogin 
 	cookie := http.Cookie{
 		Name:  "token",
 		Value: tokenString,
+		Path:  "/",
 	}
 	http.SetCookie(w, &cookie)
 	return nil
