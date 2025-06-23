@@ -62,6 +62,11 @@ func run() error {
 		router.Post("/api/user/registration/", handlers.Registration)
 	})
 
+	routers.Group(func(router chi.Router) {
+		router.Use(auth.MiddleCheckAuth)
+		router.Post("/api/user/logout/", handlers.Logout)
+	})
+
 	//err = http.ListenAndServe(servConfig.RunAddr, routers)
 	err = http.ListenAndServeTLS(servConfig.RunAddr, "server.crt", "server.key", routers)
 	if err != nil {

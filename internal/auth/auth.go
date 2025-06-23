@@ -8,7 +8,6 @@ import (
 	"github.com/eampleev23/gophkeeper2.git/internal/server_config"
 	"github.com/golang-jwt/jwt/v4"
 	"go.uber.org/zap"
-	"log"
 	"net/http"
 	"time"
 )
@@ -41,27 +40,51 @@ const (
 	KeyUserIDCtx Key = "user_id_ctx"
 )
 
-// Auth мидлвар, который проверяет авторизацию.
-func (au *Authorizer) Auth(next http.Handler) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		_, err := r.Cookie("token")
+// MiddleCheckAuth мидлвар, который проверяет авторизацию.
+func (au *Authorizer) MiddleCheckAuth(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(responseWriter http.ResponseWriter, gotRequest *http.Request) {
+		// 1. Получаем куку.
+		cookie, err := gotRequest.Cookie("token")
 		if err != nil {
-			// Получаем логгер из контекста запроса
-			logger, ok := r.Context().Value(keyLogger).(*logger.ZapLog)
-			if !ok {
-				log.Printf("Error getting logger")
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-			logger.ZL.Debug("No cookie", zap.String("err", err.Error()))
-			next.ServeHTTP(w, r)
+			au.logger.ZL.Debug("No token cookie", zap.Error(err))
+			resultMsg := resultMsg{IsError: true, ResultMessage: "Authentication required"}
+			msg, _ := json.Marshal(resultMsg)
+			responseWriter.WriteHeader(http.StatusUnauthorized)
+			responseWriter.Write(msg)
 			return
 		}
-		// если кука уже установлена, то через контекст передаем 0
-		ctx := context.WithValue(r.Context(), KeyUserIDCtx, 0)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	}
-	return http.HandlerFunc(fn)
+
+		// 2. Парсим и валидируем JWT.
+		token, err := jwt.ParseWithClaims(
+			cookie.Value,
+			&Claims{},
+			func(token *jwt.Token) (interface{}, error) {
+				return []byte(au.servConf.SecretKey), nil
+			},
+		)
+		if err != nil || !token.Valid {
+			au.logger.ZL.Debug("Invalid token", zap.Error(err))
+			resultMsg := resultMsg{IsError: true, ResultMessage: "Invalid token"}
+			msg, _ := json.Marshal(resultMsg)
+			responseWriter.WriteHeader(http.StatusUnauthorized)
+			responseWriter.Write(msg)
+			return
+		}
+
+		// 3. Извлекаем данные пользователя
+		claims, ok := token.Claims.(*Claims)
+		if !ok {
+			au.logger.ZL.Debug("Failed to parse claims", zap.Error(err))
+			resultMsg := resultMsg{IsError: true, ResultMessage: "Invalid token"}
+			msg, _ := json.Marshal(resultMsg)
+			responseWriter.WriteHeader(http.StatusUnauthorized)
+			responseWriter.Write(msg)
+			return
+		}
+		// 4. Передаем userID в контекст.
+		ctx := context.WithValue(context.Background(), KeyUserIDCtx, claims.UserID)
+		next.ServeHTTP(responseWriter, gotRequest.WithContext(ctx))
+	})
 }
 
 // MiddleCheckNoAuth мидлвар, который проверяет роуты, к которым должны обращаться не авторизованные пользователи.
@@ -104,6 +127,22 @@ func (au *Authorizer) SetNewCookie(w http.ResponseWriter, userID int, userLogin 
 	}
 	http.SetCookie(w, &cookie)
 	return nil
+}
+
+func (au *Authorizer) Logout(w http.ResponseWriter) {
+
+	au.logger.ZL.Debug("logging out user by clearing cookie")
+
+	// Создаем cookie с таким же именем, но с истекшим сроком действия
+
+	cookie := http.Cookie{
+		Name:    "token",
+		Value:   "",
+		Path:    "/",
+		MaxAge:  -1,
+		Expires: time.Now().Add(-1 * time.Hour), // Устанавливаем время в прошлом
+	}
+	http.SetCookie(w, &cookie)
 }
 
 // Claims описывает утверждения, хранящиеся в токене + добавляет кастомное UserID.
