@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/eampleev23/gophkeeper2.git/internal/logger"
 	"github.com/eampleev23/gophkeeper2.git/internal/models"
@@ -9,9 +10,16 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 )
 
+// Ошибки хранилища
+
+var (
+	ErrUserNotFound = errors.New("user not found")
+)
+
 type Store interface {
 	DBConnClose() (err error)
 	CreateUser(ctx context.Context, userRegReq models.UserRegReq) (newUser *models.User, err error)
+	GetUserByLogin(ctx context.Context, userLoginReq models.UserLoginReq) (userModelResponse *models.User, err error)
 }
 
 func NewStorage(serv_conf *server_config.ServerConfig, logger *logger.ZapLog) (Store, error) {

@@ -2,14 +2,8 @@ package handlers
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
-	"github.com/eampleev23/gophkeeper2.git/internal/auth"
-	"github.com/eampleev23/gophkeeper2.git/internal/logger"
 	"github.com/eampleev23/gophkeeper2.git/internal/models"
-	"github.com/eampleev23/gophkeeper2.git/internal/server_config"
-	"github.com/jackc/pgerrcode"
-	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"io"
@@ -17,45 +11,6 @@ import (
 	"net/http/httptest"
 	"testing"
 )
-
-// Выносим создание конфига, логгера, авторизатора в глобальные переменные
-
-var (
-	testConfig    = server_config.NewServerConfig()
-	testLogger, _ = logger.NewZapLogger("info")
-	testAuth, _   = auth.Initialize(testConfig, testLogger)
-)
-
-// mockStorage реализует store.Store для тестов
-type mockStorage struct {
-	users map[string]models.User
-}
-
-func newMockStorage() *mockStorage {
-	return &mockStorage{
-		users: make(map[string]models.User),
-	}
-}
-
-func (m *mockStorage) CreateUser(ctx context.Context, userReq models.UserRegReq) (*models.User, error) {
-	// Для теста BadRequest возвращаем ошибку при пустом логине
-	if userReq.Login == "" {
-		return nil, &pgconn.PgError{Code: pgerrcode.NotNullViolation}
-	}
-	if _, exists := m.users[userReq.Login]; exists {
-		return &models.User{}, &pgconn.PgError{Code: pgerrcode.UniqueViolation}
-	}
-	newUser := models.User{
-		ID:    len(m.users) + 1,
-		Login: userReq.Login,
-	}
-	m.users[userReq.Login] = newUser
-	return &newUser, nil
-}
-
-func (m *mockStorage) DBConnClose() error {
-	return nil
-}
 
 func TestHandlers_Registration(t *testing.T) {
 

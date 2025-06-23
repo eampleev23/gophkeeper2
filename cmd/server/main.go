@@ -54,14 +54,21 @@ func run() error {
 	routers := chi.NewRouter()
 
 	routers.Use(logger.RequestLogger)
-	routers.Use(middlewares.CheckAndSetContentType)
+	routers.Use(middlewares.CheckAndSetContenType)
 
 	routers.Group(func(router chi.Router) {
 		router.Use(auth.MiddleCheckNoAuth)
+		router.Post("/api/user/login/", handlers.Login)
 		router.Post("/api/user/registration/", handlers.Registration)
 	})
 
-	err = http.ListenAndServe(servConfig.RunAddr, routers)
+	routers.Group(func(router chi.Router) {
+		router.Use(auth.MiddleCheckAuth)
+		router.Post("/api/user/logout/", handlers.Logout)
+	})
+
+	//err = http.ListenAndServe(servConfig.RunAddr, routers)
+	err = http.ListenAndServeTLS(servConfig.RunAddr, "server.crt", "server.key", routers)
 	if err != nil {
 		return fmt.Errorf("failed to start server: %w", err)
 	}
