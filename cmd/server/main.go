@@ -56,6 +56,7 @@ func run() error {
 	routers.Use(logger.RequestLogger)
 	routers.Use(middlewares.CheckAndSetContenType)
 
+	routers.Get("/", handlers.Root)
 	routers.Get("/health", handlers.Health)
 
 	routers.Group(func(router chi.Router) {

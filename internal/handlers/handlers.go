@@ -54,3 +54,14 @@ func (h *Handlers) Health(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("OK"))
 }
+
+// Root — ответ на корневой путь (как у pointscounter).
+func (h *Handlers) Root(w http.ResponseWriter, _ *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(map[string]string{
+		"environment": "production",
+		"message":     "Gophkeeper2 API",
+		"version":     "1.0.0",
+	})
+}
