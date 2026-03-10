@@ -48,3 +48,9 @@ func sendResponse(
 	responseWriter.Write(msg)
 	return nil
 }
+
+// Health — эндпоинт для проверки живости (деплой, nginx).
+func (h *Handlers) Health(w http.ResponseWriter, _ *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK"))
+}

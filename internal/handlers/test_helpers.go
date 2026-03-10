@@ -61,3 +61,31 @@ func (m *mockStorage) GetUserByLogin(ctx context.Context, userLoginReq models.Us
 func (m *mockStorage) DBConnClose() error {
 	return nil
 }
+
+func (m *mockStorage) GetUserEncryptedKeys(ctx context.Context, userID int) ([]byte, error) {
+	return nil, nil
+}
+
+func (m *mockStorage) SetUserEncryptedKeys(ctx context.Context, userID int, encryptedBlob []byte) error {
+	return nil
+}
+
+func (m *mockStorage) CreateVaultItem(ctx context.Context, userID int, itemType, metaName string, payload []byte) (int64, error) {
+	return 0, nil
+}
+
+func (m *mockStorage) ListVaultItems(ctx context.Context, userID int) ([]models.VaultItemMeta, error) {
+	return nil, nil
+}
+
+func (m *mockStorage) GetVaultItem(ctx context.Context, userID int, itemID int64) (*models.VaultItem, error) {
+	return nil, nil
+}
+
+func (m *mockStorage) UpdateVaultItem(ctx context.Context, userID int, itemID int64, metaName string, payload []byte) error {
+	return nil
+}
+
+func (m *mockStorage) DeleteVaultItem(ctx context.Context, userID int, itemID int64) error {
+	return nil
+}

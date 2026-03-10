@@ -30,7 +30,7 @@ func NewDBStore(c *server_config.ServerConfig, l *logger.ZapLog) (*DBStore, erro
 	if err != nil {
 		return &DBStore{}, fmt.Errorf("%w", errors.New("sql.open failed in case to create store"))
 	}
-	if err := runMigrations(c.DBDSN); err != nil {
+	if err := RunMigrations(c.DBDSN); err != nil {
 		return nil, fmt.Errorf("failed to run DB migrations: %w", err)
 	}
 	return &DBStore{
@@ -43,7 +43,8 @@ func NewDBStore(c *server_config.ServerConfig, l *logger.ZapLog) (*DBStore, erro
 //go:embed migrations/*.sql
 var migrationsDir embed.FS
 
-func runMigrations(dsn string) error {
+// RunMigrations применяет миграции к БД по dsn. Используется при старте сервера и в CI (cmd/migrate).
+func RunMigrations(dsn string) error {
 	d, err := iofs.New(migrationsDir, "migrations")
 	if err != nil {
 		return fmt.Errorf("failed to return an iofs driver: %w", err)

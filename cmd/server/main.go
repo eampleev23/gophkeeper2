@@ -56,6 +56,8 @@ func run() error {
 	routers.Use(logger.RequestLogger)
 	routers.Use(middlewares.CheckAndSetContenType)
 
+	routers.Get("/health", handlers.Health)
+
 	routers.Group(func(router chi.Router) {
 		router.Use(auth.MiddleCheckNoAuth)
 		router.Post("/api/user/login/", handlers.Login)
@@ -65,10 +67,24 @@ func run() error {
 	routers.Group(func(router chi.Router) {
 		router.Use(auth.MiddleCheckAuth)
 		router.Post("/api/user/logout/", handlers.Logout)
+
+		// Ключевой блоб пользователя (зашифрованный DEK и т.д.)
+		router.Get("/api/vault/keys", handlers.GetUserKeys)
+		router.Put("/api/vault/keys", handlers.SetUserKeys)
+
+		// Записи хранилища (vault items)
+		router.Get("/api/vault/items", handlers.ListVaultItems)
+		router.Post("/api/vault/items", handlers.CreateVaultItem)
+		router.Get("/api/vault/items/{id}", handlers.GetVaultItem)
+		router.Put("/api/vault/items/{id}", handlers.UpdateVaultItem)
+		router.Delete("/api/vault/items/{id}", handlers.DeleteVaultItem)
 	})
 
-	//err = http.ListenAndServe(servConfig.RunAddr, routers)
-	err = http.ListenAndServeTLS(servConfig.RunAddr, "server.crt", "server.key", routers)
+	if servConfig.TLSEnabled {
+		err = http.ListenAndServeTLS(servConfig.RunAddr, "server.crt", "server.key", routers)
+	} else {
+		err = http.ListenAndServe(servConfig.RunAddr, routers)
+	}
 	if err != nil {
 		return fmt.Errorf("failed to start server: %w", err)
 	}
