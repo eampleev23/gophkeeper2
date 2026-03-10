@@ -2,7 +2,7 @@ package models
 
 import "time"
 
-// VaultItem — полная запись хранилища (для get).
+// VaultItem — полная запись хранилища (для get)
 type VaultItem struct {
 	ID        int64     `json:"id"`
 	UserID    int       `json:"user_id"`
@@ -13,7 +13,7 @@ type VaultItem struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-// VaultItemMeta — метаданные для списка (без payload).
+// VaultItemMeta — метаданные для списка (без payload)
 type VaultItemMeta struct {
 	ID        int64     `json:"id"`
 	Type      string    `json:"type"`
