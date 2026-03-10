@@ -1,7 +1,4 @@
-# Деплой на self-hosted runner (тот же сервер). Запускается при push в main.
-# Тесты при push в main выполняются в workflow test.yml; этот workflow можно вызывать после успешных тестов
-# (настройка: Branch protection rule — Require status "Test" to pass before merging; тогда деплой после merge уже защищён).
-# Либо один workflow с job test + job deploy (needs: test) — тогда при push в main сначала тесты, потом деплой.
+# Только деплой на self-hosted runner. Тесты — локально (pre-commit).
 name: Deploy (self-hosted)
 
 on:
@@ -10,42 +7,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    # При push в main сначала прогоняем тесты, деплой только при успехе
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: gophkeeper2_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 5
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.24'
-      - run: go mod tidy
-      - run: go run ./cmd/migrate/
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/gophkeeper2_test?sslmode=disable
-      - run: go vet ./...
-      - run: go test -v -race -count=1 ./...
-
   deploy:
     runs-on: [self-hosted, linux]
-    needs: [test]
-    # При push в main — деплой только если тесты прошли; при workflow_dispatch тесты пропускаются (skipped) — деплой всё равно выполняется
-    if: always() && (needs.test.result == 'success' || needs.test.result == 'skipped') && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     env:
       PROJECT_DIR: /opt/gophkeeper2/gophkeeper2
 
