@@ -53,6 +53,7 @@ jobs:
       - name: Deploy to server
         run: |
           set -e
+          git config --global --add safe.directory "$PROJECT_DIR"
           cd "$PROJECT_DIR"
           git fetch origin
           git reset --hard origin/main
