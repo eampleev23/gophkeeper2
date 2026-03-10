@@ -16,6 +16,7 @@ jobs:
       - name: Deploy to server
         run: |
           set -e
+          export PATH="/usr/local/go/bin:$PATH"
           git config --global --add safe.directory "$PROJECT_DIR"
           cd "$PROJECT_DIR"
           git fetch origin

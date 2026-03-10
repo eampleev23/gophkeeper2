@@ -1,6 +1,6 @@
 module github.com/eampleev23/gophkeeper2.git
 
-go 1.24.1
+go 1.25
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.7
