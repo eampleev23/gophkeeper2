@@ -49,7 +49,7 @@ func TestCheckAndSetContentType(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			req := httptest.NewRequest(http.MethodGet, "/", nil)
+			req := httptest.NewRequest(http.MethodPost, "/", nil)
 			req.Header.Set("Content-Type", tt.contentType)
 
 			// Создаем новый респонз рекордер.
@@ -78,6 +78,19 @@ func TestCheckAndSetContentType(t *testing.T) {
 				if contentType := responseRecorder.Header().Get("Content-Type"); contentType != "application/json" {
 					t.Errorf("handler returned wrong content type: got %s", contentType)
 				}
+			}
+		})
+	}
+}
+
+func TestContentTypeAllowsBodylessRequests(t *testing.T) {
+	for _, method := range []string{http.MethodGet, http.MethodHead} {
+		t.Run(method, func(t *testing.T) {
+			response := httptest.NewRecorder()
+			request := httptest.NewRequest(method, "/health", nil)
+			CheckAndSetContenType(&TestHandler{}).ServeHTTP(response, request)
+			if response.Code != http.StatusOK {
+				t.Fatalf("bodyless request rejected: %d", response.Code)
 			}
 		})
 	}
